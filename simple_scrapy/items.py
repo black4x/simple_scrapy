@@ -8,7 +8,11 @@
 import scrapy
 
 
-class SimpleScrapyItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
+class PersonItem(scrapy.Item):
+    first_name = scrapy.Field()
+    last_name = scrapy.Field()
+    position = scrapy.Field()
+    company = scrapy.Field()
+    city = scrapy.Field()
+    country = scrapy.Field()
     pass
