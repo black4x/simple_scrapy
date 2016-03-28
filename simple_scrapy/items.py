@@ -15,4 +15,3 @@ class PersonItem(scrapy.Item):
     company = scrapy.Field()
     city = scrapy.Field()
     country = scrapy.Field()
-    pass
