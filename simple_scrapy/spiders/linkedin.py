@@ -1,6 +1,8 @@
 from scrapy.contrib.spiders.init import InitSpider
 from scrapy.http import Request, FormRequest
-from scrapy.selector import Selector
+import json
+import re
+
 
 class MySpider(InitSpider):
     name = 'lin'
@@ -28,15 +30,15 @@ class MySpider(InitSpider):
     def parse(self, response):
         self.log("\n\nParsing: \n\n")
 
-        hhh = Selector(response)
 
+        regex = re.compile(r'<!--(.*)-->', re.DOTALL)
+        comment = response.xpath("//code[@id='voltron_srp_main-content']/comment()").re(regex)[0].encode(encoding='UTF-8',errors='backslashreplace')
 
-        for i in hhh.xpath("//div"):  #????????????????
-            self.log(i)
+        vvv = re.sub(r'\\u002D', '-', comment, flags=re.IGNORECASE)
+        json_dict = json.loads(vvv, encoding='UTF-8')
 
-
-        #filename = 'res111.html'
-        #with open(filename, 'wb') as f:
-        #    f.write(response.body)
+        r = json_dict['content']['page']['voltron_unified_search_json']['search']['results']
+        for i in r:
+            self.log(i['person']['fmt_location'])
 
         return []
