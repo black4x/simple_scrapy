@@ -9,8 +9,8 @@ import scrapy
 
 
 class PersonItem(scrapy.Item):
-    first_name = scrapy.Field()
-    last_name = scrapy.Field()
+    firstName = scrapy.Field()
+    lastName = scrapy.Field()
     position = scrapy.Field()
     company = scrapy.Field()
     city = scrapy.Field()
