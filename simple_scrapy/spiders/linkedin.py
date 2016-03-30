@@ -7,7 +7,7 @@ from simple_scrapy.items import PersonItem
 
 
 class MySpider(InitSpider):
-    name = 'lin'
+    name = 'linkedin'
     allowed_domains = ['linkedin.com']
     login_page = 'https://www.linkedin.com/uas/login'
 
