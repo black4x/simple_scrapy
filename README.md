@@ -10,7 +10,7 @@ scrapy crawl linkedin -a login=your_login -a password=your_password -a search=En
 
 where:
 <ul>
-<li>login and password: are from your linkedin account in order to login</li>
+<li>login and password: your linkedin account</li>
 <li>search=Entwickler: word you are searching for</li>
 <li>items.csv: resuling file (you can use .json as well)</li>
 </ul>
