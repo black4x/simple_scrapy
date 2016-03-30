@@ -5,7 +5,7 @@ It is simple command line Linkedin scraper based on python scrapy library.
 <h5>installation:</h5>
 pip install scrapy
 
-<h5>usage:<h5>
+<h5>usage:</h5>
 scrapy crawl linkedin -a login=your_login -a password=your_password -a search=Entwickler -o items.csv
 
 where:
