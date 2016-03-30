@@ -27,32 +27,42 @@ class MySpider(InitSpider):
             self.log("\n\n !!!! Login Success !!!!\n\n")
             return self.initialized()
         else:
-            self.log("\n\n ****** ERROR\n\n")
+            self.log("\n\n ****** Login ERROR\n\n")
 
     def create_person_item(self, person):
         item = PersonItem()
         first_name = 'firstName'
         last_name = 'lastName'
-        if first_name in person:
-            item[first_name] = person[first_name]
-        if last_name in person:
-            item[last_name] = person[last_name]
+        item[first_name] = person[first_name] if first_name in person else None
+        item[last_name] = person[last_name] if last_name in person else None
+        # finding city and country using ','
+        city_country = person['fmt_location'].split(',')
         try:
-            item['city'], item['country'] = [x.strip() for x in person['fmt_location'].split(',')]
-        except:
-            item['city'], item['country'] = person['fmt_location'], None
+            item['city'] = city_country[0].strip()
+            item['country'] = city_country[1].strip()
+        except IndexError as e:
+            self.log(e)
+        # finding current position and company using: bei, at
+        pos_company = re.split(r'bei|at', person["fmt_headline"])
+        try:
+            item['position'] = re.sub(r'<B>|</B>','', pos_company[0])
+            item['company'] = pos_company[1]
+        except IndexError as e:
+            self.log(e)
         return item
 
-
     def parse(self, response):
-        self.log("\n\nParsing: \n\n")
-
+        # reqular expression to get json from comment
         regex = re.compile(r'<!--(.*)-->', re.DOTALL)
-        comment = response.xpath("//code[@id='voltron_srp_main-content']/comment()").re(regex)[0].encode(encoding='UTF-8',errors='backslashreplace')
-        vvv = re.sub(r'\\u002D', '-', comment, flags=re.IGNORECASE)
-        json_dict = json.loads(vvv, encoding='UTF-8')
-
+        commented_json = response.xpath("//code[@id='voltron_srp_main-content']/comment()").re(regex)[0].encode(
+            encoding='UTF-8',
+            errors='backslashreplace')
+        # clearing json from unalloyed symbol
+        commented_json = re.sub(r'\\u002D', '-', commented_json, flags=re.IGNORECASE)
+        # parsing json
+        json_dict = json.loads(commented_json, encoding='UTF-8')
+        # navigating to results section
         results = json_dict['content']['page']['voltron_unified_search_json']['search']['results']
-
+        # yield each Item
         for res_array in results:
             yield self.create_person_item(res_array['person'])
