@@ -10,16 +10,21 @@ class MySpider(InitSpider):
     name = 'lin'
     allowed_domains = ['linkedin.com']
     login_page = 'https://www.linkedin.com/uas/login'
-    start_urls = ['https://www.linkedin.com/vsearch/f?type=people&keywords=fuhrparkleiter']
+
+    # params from command line
+    def __init__(self, login='', password='', search="fuhrparkleiter"):
+        self.start_urls = ['https://www.linkedin.com/vsearch/f?type=people&keywords=%s' % search]
+        self.login = login
+        self.password = password
 
     def init_request(self):
-        return Request(url=self.login_page, callback=self.login)
+        return Request(url=self.login_page, callback=self.go_login)
 
-    def login(self, response):
+    def go_login(self, response):
         return FormRequest.from_response(response,
                                         formname='login',
-                                        formdata={'session_key': 'a.juodel@gmail.com',
-                                                   'session_password': 'XXX'},
+                                        formdata={'session_key': self.login,
+                                                   'session_password': self.password},
                                         callback=self.check_login)
 
     def check_login(self, response):
@@ -31,22 +36,25 @@ class MySpider(InitSpider):
 
     def create_person_item(self, person):
         item = PersonItem()
-        first_name = 'firstName'
-        last_name = 'lastName'
-        item[first_name] = person[first_name] if first_name in person else None
-        item[last_name] = person[last_name] if last_name in person else None
-        # finding city and country using ','
-        city_country = person['fmt_location'].split(',')
         try:
-            item['city'] = city_country[0].strip()
-            item['country'] = city_country[1].strip()
-        except IndexError as e:
-            self.log(e)
-        # finding current position and company using: bei, at
-        pos_company = re.split(r'bei|at', person["fmt_headline"])
-        try:
-            item['position'] = re.sub(r'<B>|</B>','', pos_company[0])
-            item['company'] = pos_company[1]
+            first_name = 'firstName'
+            last_name = 'lastName'
+            item[first_name] = person[first_name] if first_name in person else None
+            item[last_name] = person[last_name] if last_name in person else None
+            # finding city and country using ','
+            city_country = person['fmt_location'].split(',')
+            try:
+                item['city'] = city_country[0].strip()
+                item['country'] = city_country[1].strip()
+            except IndexError as e:
+                self.log(e)
+            # finding current position and company using: bei, at
+            pos_company = re.split(r'bei|at', person["fmt_headline"])
+            try:
+                item['position'] = re.sub(r'<B>|</B>','', pos_company[0])
+                item['company'] = pos_company[1]
+            except IndexError as e:
+                self.log(e)
         except IndexError as e:
             self.log(e)
         return item
@@ -65,4 +73,5 @@ class MySpider(InitSpider):
         results = json_dict['content']['page']['voltron_unified_search_json']['search']['results']
         # yield each Item
         for res_array in results:
-            yield self.create_person_item(res_array['person'])
+            if 'person' in res_array:
+                yield self.create_person_item(res_array['person'])
