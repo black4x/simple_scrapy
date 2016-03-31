@@ -11,19 +11,23 @@ class MySpider(InitSpider):
     allowed_domains = ['linkedin.com']
     login_page = 'https://www.linkedin.com/uas/login'
 
-    # params from command line
     def __init__(self, login='', password='', search="fuhrparkleiter"):
+        """params from command line
+        """
         #search URL
         self.start_urls = ['https://www.linkedin.com/vsearch/f?type=people&keywords=%s' % search]
         self.login = login
         self.password = password
 
-    #first entry point
     def init_request(self):
+        """ first entry point, going to login page
+        """
         return Request(url=self.login_page, callback=self.go_login)
 
-    #login process with login from
     def go_login(self, response):
+        """describe login form
+            after submit redirect to check_login
+        """
         return FormRequest.from_response(response,
                                         formname='login',
                                         formdata={'session_key': self.login,
@@ -31,14 +35,17 @@ class MySpider(InitSpider):
                                         callback=self.check_login)
 
     def check_login(self, response):
+        """checking if login successful
+        """
         if "logout" in response.body:
             self.log("\n\n !!!! Login Success !!!!\n\n")
             return self.initialized()
         else:
             self.log("\n\n ****** Login ERROR\n\n")
 
-    #create item for each row in result by extracting data from json
     def create_person_item(self, person):
+        """create person item by extracting data from json ..[results][person]
+        """
         item = PersonItem()
         try:
             first_name = 'firstName'
@@ -64,8 +71,9 @@ class MySpider(InitSpider):
             self.log(e)
         return item
 
-    #main parsing method, starts after self.initialized() call
     def parse(self, response):
+        """main parsing method, starts after self.initialized() call
+        """
         # reqular expression to get json from comment
         regex = re.compile(r'<!--(.*)-->', re.DOTALL)
         commented_json = response.xpath("//code[@id='voltron_srp_main-content']/comment()").re(regex)[0].encode(
