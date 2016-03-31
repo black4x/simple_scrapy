@@ -13,13 +13,16 @@ class MySpider(InitSpider):
 
     # params from command line
     def __init__(self, login='', password='', search="fuhrparkleiter"):
+        #search URL
         self.start_urls = ['https://www.linkedin.com/vsearch/f?type=people&keywords=%s' % search]
         self.login = login
         self.password = password
 
+    #first entry point
     def init_request(self):
         return Request(url=self.login_page, callback=self.go_login)
 
+    #login process with login from
     def go_login(self, response):
         return FormRequest.from_response(response,
                                         formname='login',
@@ -34,6 +37,7 @@ class MySpider(InitSpider):
         else:
             self.log("\n\n ****** Login ERROR\n\n")
 
+    #create item for each row in result by extracting data from json
     def create_person_item(self, person):
         item = PersonItem()
         try:
@@ -55,10 +59,12 @@ class MySpider(InitSpider):
                 item['company'] = pos_company[1]
             except IndexError as e:
                 self.log(e)
-        except IndexError as e:
+        #preventing spot execution if one item has problem
+        except Exception as e:
             self.log(e)
         return item
 
+    #main parsing method, starts after self.initialized() call
     def parse(self, response):
         # reqular expression to get json from comment
         regex = re.compile(r'<!--(.*)-->', re.DOTALL)
